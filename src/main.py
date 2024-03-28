@@ -1,29 +1,60 @@
 import os
-import discord
-from discord import option
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 from dotenv import load_dotenv
 
-intents = discord.Intents.default()
+intents = disnake.Intents.default()
 bot = commands.Bot(command_prefix="$", intents=intents)
 
 load_dotenv()
 
 @bot.event
 async def on_ready():
-    print(f"[slashcommands] => Registered {len(bot.commands)} slashcommands : {[command.name for command in bot.commands]}")
     print(f"Logged in as {bot.user}")
 
 @bot.slash_command(name = "ping", description="Sends the bot's latency.")
-async def ping(ctx):
-    await ctx.respond(f"Pong! Latency is {round(bot.latency * 1000)}ms")
+async def ping(interaction: disnake.ApplicationCommandInteraction):
+    await interaction.response.send_message(f"Pong! Latency is {round(bot.latency * 1000)}ms")
 
-@bot.slash_command(name = "scan", description="Scan all the ports of a server to find open ports.")
-@option("server", description="Server name", type=str)
-@option("start_port", description="Start port", type=int, required=False, default=1)
-@option("end_port", description="End port", type=int, required=False, default=65535)
-async def scan(ctx, server, start_port, end_port):
-    msg = await ctx.respond("Scanning...")
+# create a slashcommand to send a message as the bot
+@bot.slash_command(name = "send", description="Sends a message as the bot.")
+async def send(interaction: disnake.ApplicationCommandInteraction, message: str):
+    await interaction.channel.send(message)
+    await interaction.response.send_message(f"Sent message: `{message}`", ephemeral=True)
 
+# create a slashcommand to edit a message sent by the bot
+@bot.slash_command(name = "edit", description="Edits a message sent by the bot.")
+async def edit(interaction: disnake.ApplicationCommandInteraction, message_id: str, message: str):
+    message_to_edit = await interaction.channel.fetch_message(message_id)
+    await message_to_edit.edit(content=message)
+    await interaction.response.send_message(f"Edited message: `{message}`", ephemeral=True)
+
+# create a slashcommand to delete a message sent by the bot
+@bot.slash_command(name = "delete", description="Deletes a message sent by the bot.")
+async def delete(interaction: disnake.ApplicationCommandInteraction, message_id: str):
+    message_to_delete = await interaction.channel.fetch_message(message_id)
+    await message_to_delete.delete()
+    await interaction.response.send_message(f"Deleted message: `{message_to_delete.content}`", ephemeral=True)
+
+# create a slashcommand to reply to a message as the bot
+@bot.slash_command(name = "reply", description="Replies to a message as the bot.")
+async def reply(interaction: disnake.ApplicationCommandInteraction, message_id: str, message: str):
+    message_to_reply = await interaction.channel.fetch_message(message_id)
+    await message_to_reply.reply(message)
+    await interaction.response.send_message(f"Replied to message: `{message_to_reply.content}`", ephemeral=True)
+
+# create a slashcommand to react to a message as the bot
+@bot.slash_command(name = "react", description="Reacts to a message as the bot.")
+async def react(interaction: disnake.ApplicationCommandInteraction, message_id: str, emoji: str):
+    message_to_react = await interaction.channel.fetch_message(message_id)
+    await message_to_react.add_reaction(emoji)
+    await interaction.response.send_message(f"Reacted to message: `{message_to_react.content}`", ephemeral=True)
+
+# create a slashcommand to unreact to a message as the bot
+@bot.slash_command(name = "unreact", description="Unreacts to a message as the bot.")
+async def unreact(interaction: disnake.ApplicationCommandInteraction, message_id: str, emoji: str):
+    message_to_unreact = await interaction.channel.fetch_message(message_id)
+    await message_to_unreact.remove_reaction(emoji, interaction.user)
+    await interaction.response.send_message(f"Unreacted to message: `{message_to_unreact.content}`", ephemeral=True)
 
 bot.run(os.getenv('TOKEN'))
