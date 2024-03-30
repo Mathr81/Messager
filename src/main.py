@@ -74,6 +74,6 @@ async def check_staff_role(interaction: disnake.ApplicationCommandInteraction):
 
 @bot.slash_command(name = "help", description="Display help information")
 async def help(interaction: disnake.ApplicationCommandInteraction):
-    await interaction.response.send_message("Visit here for more informations: https://github.com/Matheus-Mendes/Messager", ephemeral=True)
+    await interaction.response.send_message("Please visit the [documentation](https://github.com/Mathr81/Messager/blob/main/doc.md) for all the commands", ephemeral=True)
 
 bot.run(os.getenv('TOKEN'))
